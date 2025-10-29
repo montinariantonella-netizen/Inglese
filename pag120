@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lezione Interattiva: Basi della Programmazione</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js" xintegrity="sha512-QSkVNOCYLtj73J4A8seBYzPLHbO+ltSSsBDpaJ5iYXHFjEqa8YulOQqxaITptUIMM+fnMpplssifkey0CS9i6w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .tab-active {
+            border-bottom-color: #0891b2;
+            color: #0891b2;
+            font-weight: 600;
+        }
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+            padding-bottom: 0.5rem;
+            border-bottom-width: 2px;
+        }
+        .content-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .lang-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .lang-btn-active {
+            background-color: #f0f9ff;
+            color: #0369a1;
+            border-color: #7dd3fc;
+        }
+        .lang-btn:not(.lang-btn-active):hover {
+            background-color: #f8fafc;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-stone-800 antialiased">
+
+    <!-- Chosen Palette: Calm Neutrals (bg-stone-50, text-stone-800, accent: cyan-600/700) -->
+    <!-- Application Structure Plan: Struttura SPA a schede (tabs). Un'intestazione contiene il titolo e un selettore di lingua (IT/EN). Una barra di navigazione ha tre schede: "Concetti Chiave", "Gli Strumenti", "Le Regole Base". Sotto, un'area di contenuto dinamica mostra solo la sezione della scheda attiva. Interazioni: 1. Selettore Lingua: I pulsanti (IT/EN) aggiornano tutto il testo dell'interfaccia usando un oggetto JS 'content' e una funzione 'updateLanguage'. 2. Navigazione a Schede: Cliccare su una scheda (es. "Gli Strumenti") nasconde le altre sezioni e mostra quella pertinente. Questo è il fulcro della navigazione SPA. Flusso Utente: L'utente atterra su "Concetti Chiave", può cliccare sulle card per rivelare le definizioni. Può passare alla scheda "Gli Strumenti", vedere un grafico a ciambella e cliccare sui segmenti per ottenere descrizioni. Può passare a "Le Regole Base" e cliccare sulle card per vedere esempi di pseudo-codice. Perché questa struttura? Il report originale è un testo lineare e semplice. Questa struttura a schede interattive scompone il contenuto in blocchi logici (Concetti, Strumenti, Regole), facilitando la digestione per un utente con "obiettivi minimi". L'esplorazione attiva (cliccare schede, card, grafici) rafforza l'apprendimento meglio della lettura passiva. Il selettore di lingua risponde direttamente alla natura bilingue del materiale originale. -->
+    <!-- Visualization & Content Choices: Info Report: "Concetti Chiave" (Logica, Codice, Editor, Traduttore). Obiettivo: Informare & Organizzare. Metodo: Card interattive (HTML/Tailwind). Interazione: JS onClick per mostrare/nascondere le definizioni. Giustificazione: Semplice e pulito, riduce il carico cognitivo. Libreria: Vanilla JS. --- Info Report: "Gli Strumenti" (Linguaggio, Editor, Traduttore). Obiettivo: Informare & Mostrare Relazioni (Part-to-Whole). Metodo: Grafico Donut (Chart.js su <canvas>). Interazione: Evento JS onClick sui segmenti del grafico. Una div separata viene aggiornata con la descrizione dello strumento cliccato. Giustificazione: Soddisfa il requisito obbligatorio di Chart.js visualizzando i "3 Strumenti" come componenti di un "Toolkit". L'interazione rende il grafico esplorativo. Libreria: Chart.js, Vanilla JS. --- Info Report: "Le Regole Base" (Nomi, Scelte, Loop). Obiettivo: Informare & Organizzare. Metodo: Card interattive a 3 colonne (HTML/Tailwind). Interazione: JS onClick per rivelare un semplice esempio di pseudo-codice. Giustificazione: Fornisce una rivelazione progressiva; vedere un esempio è efficace per un principiante. Libreria: Vanilla JS. --- Info Report: Contenuto Bilingue (IT/EN). Obiettivo: Accessibilità. Metodo: Pulsanti nell'header (HTML/Tailwind). Interazione: JS onClick per aggiornare innerText di tutti gli elementi di testo da un oggetto 'content'. Giustificazione: Aggiunge valore e utilizza la natura bilingue della fonte. Libreria: Vanilla JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="container mx-auto max-w-5xl p-4 sm:p-6 md:p-8 min-h-screen">
+        
+        <header class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 sm:mb-8">
+            <h1 id="main-title" class="text-3xl font-bold text-cyan-700 mb-4 sm:mb-0">Lezione: Basi della Programmazione</h1>
+            <div class="flex space-x-2 bg-stone-100 p-1 rounded-lg">
+                <button id="btn-it" class="lang-btn text-sm font-medium text-stone-700 lang-btn-active">Italiano</button>
+                <button id="btn-en" class="lang-btn text-sm font-medium text-stone-700">English</button>
+            </div>
+        </header>
+
+        <nav class="mb-6 border-b border-stone-300">
+            <div class="flex space-x-4 sm:space-x-8 -mb-px">
+                <button id="tab-btn-concepts" class="tab-btn py-2 px-1 text-base sm:text-lg text-stone-600 border-b-2 border-transparent hover:text-cyan-600 tab-active">
+                    Concetti Chiave
+                </button>
+                <button id="tab-btn-tools" class="tab-btn py-2 px-1 text-base sm:text-lg text-stone-600 border-b-2 border-transparent hover:text-cyan-600">
+                    Gli Strumenti
+                </button>
+                <button id="tab-btn-rules" class="tab-btn py-2 px-1 text-base sm:text-lg text-stone-600 border-b-2 border-transparent hover:text-cyan-600">
+                    Le Regole Base
+                </button>
+            </div>
+        </nav>
+
+        <main>
+            <section id="content-concepts" class="content-section">
+                <p id="concepts-intro" class="text-lg text-stone-700 mb-6">
+                    Per scrivere un programma, partiamo da quattro idee fondamentali. Questi sono i "mattoni" di base per dire a un computer cosa fare. Clicca su ogni concetto per scoprire la sua definizione semplice.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200">
+                        <h3 id="concept-title-logic" class="text-xl font-semibold text-cyan-800 mb-2">Logica</h3>
+                        <p id="concept-desc-logic" class="text-stone-600">Un piano, come una ricetta per il computer.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200">
+                        <h3 id="concept-title-code" class="text-xl font-semibold text-cyan-800 mb-2">Codice</h3>
+                        <p id="concept-desc-code" class="text-stone-600">Il piano scritto usando parole speciali.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200">
+                        <h3 id="concept-title-editor" class="text-xl font-semibold text-cyan-800 mb-2">Editor</h3>
+                        <p id="concept-desc-editor" class="text-stone-600">Un 'quaderno' semplice dove scrivi il codice.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-stone-200">
+                        <h3 id="concept-title-translator" class="text-xl font-semibold text-cyan-800 mb-2">Traduttore</h3>
+                        <p id="concept-desc-translator" class="text-stone-600">Legge il codice e lo fa capire al computer.</p>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="content-tools" class="content-section hidden">
+                <p id="tools-intro" class="text-lg text-stone-700 mb-6">
+                    Per iniziare a programmare, devi fare tre scelte principali. Questi sono i tuoi "strumenti" di lavoro. Insieme, formano il tuo kit di sviluppo. Clicca su una sezione del grafico per saperne di più.
+                </p>
+                <div class="flex flex-col lg:flex-row items-center lg:space-x-8">
+                    <div class="chart-container">
+                        <canvas id="toolsChart"></canvas>
+                    </div>
+                    <div id="tool-info" class="mt-6 lg:mt-0 w-full lg:w-1/2 p-6 bg-white rounded-lg shadow-sm border border-stone-200 min-h-[10rem] flex items-center justify-center">
+                        <p id="tool-info-text" class="text-stone-700 text-center text-lg">
+                            Clicca su una sezione del grafico...
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="content-rules" class="content-section hidden">
+                <p id="rules-intro" class="text-lg text-stone-700 mb-6">
+                    Quando scrivi il codice, segui tre regole base. Queste ti permettono di organizzare le informazioni, prendere decisioni e risparmiare fatica. Clicca su ogni regola per vedere un esempio semplice.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <div class="rule-card bg-white p-5 rounded-lg shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition" data-target="rule-example-naming">
+                        <h3 id="rule-title-naming" class="text-xl font-semibold text-cyan-800 mb-2">Dare un nome alle cose</h3>
+                        <p id="rule-desc-naming" class="text-stone-600 mb-3">Come mettere un'etichetta su una scatola per sapere cosa c'è dentro.</p>
+                        <pre id="rule-example-naming" class="hidden mt-3 p-3 bg-stone-100 rounded text-sm text-cyan-900 font-mono"><code><span id="rule-example-naming-text">Nome = "Mario"</span></code></pre>
+                    </div>
+
+                    <div class="rule-card bg-white p-5 rounded-lg shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition" data-target="rule-example-choices">
+                        <h3 id="rule-title-choices" class="text-xl font-semibold text-cyan-800 mb-2">Fare delle scelte</h3>
+                        <p id="rule-desc-choices" class="text-stone-600 mb-3">Dire al computer: SE succede questo, ALLORA fai quello.</p>
+                        <pre id="rule-example-choices" class="hidden mt-3 p-3 bg-stone-100 rounded text-sm text-cyan-900 font-mono"><code><span id="rule-example-choices-text">SE (età > 18) ALLORA...</span></code></pre>
+                    </div>
+
+                    <div class="rule-card bg-white p-5 rounded-lg shadow-sm border border-stone-200 cursor-pointer hover:shadow-md transition" data-target="rule-example-loops">
+                        <h3 id="rule-title-loops" class="text-xl font-semibold text-cyan-800 mb-2">Ripetere le cose</h3>
+                        <p id="rule-desc-loops" class="text-stone-600 mb-3">Dire al computer: Fai questa cosa 5 volte.</p>
+                        <pre id="rule-example-loops" class="hidden mt-3 p-3 bg-stone-100 rounded text-sm text-cyan-900 font-mono"><code><span id="rule-example-loops-text">RIPETI 5 VOLTE: ...</span></code></pre>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const content = {
+            it: {
+                mainTitle: "Lezione: Basi della Programmazione",
+                tabConcepts: "Concetti Chiave",
+                tabTools: "Gli Strumenti",
+                tabRules: "Le Regole Base",
+                conceptsIntro: "Per scrivere un programma, partiamo da quattro idee fondamentali. Questi sono i 'mattoni' di base per dire a un computer cosa fare. In questa sezione, le definizioni sono già visibili per la massima semplicità.",
+                conceptTitles: {
+                    logic: "Logica",
+                    code: "Codice",
+                    editor: "Editor",
+                    translator: "Traduttore"
+                },
+                conceptDescriptions: {
+                    logic: "Un piano, come una ricetta per il computer.",
+                    code: "Il piano scritto usando parole speciali.",
+                    editor: "Un 'quaderno' semplice dove scrivi il codice.",
+                    translator: "Legge il codice e lo fa capire al computer."
+                },
+                toolsIntro: "Per iniziare a programmare, devi fare tre scelte principali. Questi sono i tuoi 'strumenti' di lavoro. Insieme, formano il tuo kit di sviluppo. Clicca su una sezione del grafico per saperne di più.",
+                chartLabels: ["Linguaggio", "Editor", "Traduttore"],
+                toolInfoDefault: "Clicca su una sezione del grafico...",
+                toolDescriptions: {
+                    language: "Il Linguaggio è l'insieme di 'parole speciali' (come Python o Java) che usi per dare istruzioni.",
+                    editor: "L'Editor è il programma (come un 'quaderno') che usi per scrivere e salvare il tuo codice.",
+                    translator: "Il Traduttore (o Compilatore) è lo strumento che 'legge' il tuo codice e lo traduce in un linguaggio che la macchina può eseguire."
+                },
+                rulesIntro: "Quando scrivi il codice, segui tre regole base. Queste ti permettono di organizzare le informazioni, prendere decisioni e risparmiare fatica. Clicca su ogni regola per vedere un esempio semplice.",
+                ruleTitles: {
+                    naming: "Dare un nome alle cose",
+                    choices: "Fare delle scelte",
+                    loops: "Ripetere le cose"
+                },
+                ruleDescriptions: {
+                    naming: "Come mettere un'etichetta su una scatola per sapere cosa c'è dentro.",
+                    choices: "Dire al computer: SE succede questo, ALLORA fai quello.",
+                    loops: "Dire al computer: Fai questa cosa 5 volte."
+                },
+                ruleExamples: {
+                    naming: 'Nome = "Mario"',
+                    choices: 'SE (età > 18) ALLORA...',
+                    loops: 'RIPETI 5 VOLTE: ...'
+                }
+            },
+            en: {
+                mainTitle: "Lesson: Programming Basics",
+                tabConcepts: "Key Concepts",
+                tabTools: "The Tools",
+                tabRules: "The Basic Rules",
+                conceptsIntro: "To write a program, we start with four fundamental ideas. These are the basic 'bricks' for telling a computer what to do. In this section, the definitions are already visible for maximum simplicity.",
+                conceptTitles: {
+                    logic: "Logic",
+                    code: "Code",
+                    editor: "Editor",
+                    translator: "Translator"
+                },
+                conceptDescriptions: {
+                    logic: "A plan, like a recipe for the computer.",
+                    code: "The plan written using special words.",
+                    editor: "A simple 'notebook' where you write code.",
+                    translator: "Reads the code and makes the computer understand it."
+                },
+                toolsIntro: "To start programming, you need to make three main choices. These are your 'tools' for the job. Together, they form your development kit. Click a section of the chart to learn more.",
+                chartLabels: ["Language", "Editor", "Translator"],
+                toolInfoDefault: "Click a section of the chart...",
+                toolDescriptions: {
+                    language: "The Language is the set of 'special words' (like Python or Java) you use to give instructions.",
+                    editor: "The Editor is the program (like a 'notebook') you use to write and save your code.",
+                    translator: "The Translator (or Compiler) is the tool that 'reads' your code and translates it into a language the machine can run."
+                },
+                rulesIntro: "When you write code, you follow three basic rules. These let you organize information, make decisions, and save effort. Click on each rule to see a simple example.",
+                ruleTitles: {
+                    naming: "Give things a name",
+                    choices: "Make choices",
+                    loops: "Repeat things"
+                },
+                ruleDescriptions: {
+                    naming: "Like putting a label on a box to know what's inside.",
+                    choices: "Telling the computer: IF this happens, THEN do that.",
+                    loops: "Telling the computer: Do this 5 times."
+                },
+                ruleExamples: {
+                    naming: 'Name = "Mario"',
+                    choices: 'IF (age > 18) THEN...',
+                    loops: 'REPEAT 5 TIMES: ...'
+                }
+            }
+        };
+
+        let currentLang = 'it';
+        let toolsChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const btnIt = document.getElementById('btn-it');
+            const btnEn = document.getElementById('btn-en');
+            
+            const tabBtnConcepts = document.getElementById('tab-btn-concepts');
+            const tabBtnTools = document.getElementById('tab-btn-tools');
+            const tabBtnRules = document.getElementById('tab-btn-rules');
+
+            const contentConcepts = document.getElementById('content-concepts');
+            const contentTools = document.getElementById('content-tools');
+            const contentRules = document.getElementById('content-rules');
+            
+            const allTabBtns = [tabBtnConcepts, tabBtnTools, tabBtnRules];
+            const allContentSections = [contentConcepts, contentTools, contentRules];
+            
+            const textElements = {
+                mainTitle: document.getElementById('main-title'),
+                tabConcepts: tabBtnConcepts,
+                tabTools: tabBtnTools,
+                tabRules: tabBtnRules,
+                conceptsIntro: document.getElementById('concepts-intro'),
+                conceptTitleLogic: document.getElementById('concept-title-logic'),
+                conceptDescLogic: document.getElementById('concept-desc-logic'),
+                conceptTitleCode: document.getElementById('concept-title-code'),
+                conceptDescCode: document.getElementById('concept-desc-code'),
+                conceptTitleEditor: document.getElementById('concept-title-editor'),
+                conceptDescEditor: document.getElementById('concept-desc-editor'),
+                conceptTitleTranslator: document.getElementById('concept-title-translator'),
+                conceptDescTranslator: document.getElementById('concept-desc-translator'),
+                toolsIntro: document.getElementById('tools-intro'),
+                toolInfoText: document.getElementById('tool-info-text'),
+                rulesIntro: document.getElementById('rules-intro'),
+                ruleTitleNaming: document.getElementById('rule-title-naming'),
+                ruleDescNaming: document.getElementById('rule-desc-naming'),
+                ruleExampleNamingText: document.getElementById('rule-example-naming-text'),
+                ruleTitleChoices: document.getElementById('rule-title-choices'),
+                ruleDescChoices: document.getElementById('rule-desc-choices'),
+                ruleExampleChoicesText: document.getElementById('rule-example-choices-text'),
+                ruleTitleLoops: document.getElementById('rule-title-loops'),
+                ruleDescLoops: document.getElementById('rule-desc-loops'),
+                ruleExampleLoopsText: document.getElementById('rule-example-loops-text')
+            };
+
+            function updateLanguage(lang) {
+                currentLang = lang;
+                document.documentElement.lang = lang;
+                
+                const langData = content[lang];
+                
+                textElements.mainTitle.innerText = langData.mainTitle;
+                textElements.tabConcepts.innerText = langData.tabConcepts;
+                textElements.tabTools.innerText = langData.tabTools;
+                textElements.tabRules.innerText = langData.tabRules;
+                
+                textElements.conceptsIntro.innerText = langData.conceptsIntro;
+                textElements.conceptTitleLogic.innerText = langData.conceptTitles.logic;
+                textElements.conceptDescLogic.innerText = langData.conceptDescriptions.logic;
+                textElements.conceptTitleCode.innerText = langData.conceptTitles.code;
+                textElements.conceptDescCode.innerText = langData.conceptDescriptions.code;
+                textElements.conceptTitleEditor.innerText = langData.conceptTitles.editor;
+                textElements.conceptDescEditor.innerText = langData.conceptDescriptions.editor;
+                textElements.conceptTitleTranslator.innerText = langData.conceptTitles.translator;
+                textElements.conceptDescTranslator.innerText = langData.conceptDescriptions.translator;
+
+                textElements.toolsIntro.innerText = langData.toolsIntro;
+                textElements.toolInfoText.innerText = langData.toolInfoDefault;
+
+                textElements.rulesIntro.innerText = langData.rulesIntro;
+                textElements.ruleTitleNaming.innerText = langData.ruleTitles.naming;
+                textElements.ruleDescNaming.innerText = langData.ruleDescriptions.naming;
+                textElements.ruleExampleNamingText.innerText = langData.ruleExamples.naming;
+                textElements.ruleTitleChoices.innerText = langData.ruleTitles.choices;
+                textElements.ruleDescChoices.innerText = langData.ruleDescriptions.choices;
+                textElements.ruleExampleChoicesText.innerText = langData.ruleExamples.choices;
+                textElements.ruleTitleLoops.innerText = langData.ruleTitles.loops;
+                textElements.ruleDescLoops.innerText = langData.ruleDescriptions.loops;
+                textElements.ruleExampleLoopsText.innerText = langData.ruleExamples.loops;
+
+                if (lang === 'it') {
+                    btnIt.classList.add('lang-btn-active');
+                    btnEn.classList.remove('lang-btn-active');
+                } else {
+                    btnEn.classList.add('lang-btn-active');
+                    btnIt.classList.remove('lang-btn-active');
+                }
+                
+                if (toolsChartInstance) {
+                    toolsChartInstance.destroy();
+                }
+                renderToolsChart();
+            }
+
+            function switchTab(tabId) {
+                allContentSections.forEach(section => {
+                    section.classList.add('hidden');
+                });
+                allTabBtns.forEach(btn => {
+                    btn.classList.remove('tab-active');
+                });
+                
+                document.getElementById(`content-${tabId}`).classList.remove('hidden');
+                document.getElementById(`tab-btn-${tabId}`).classList.add('tab-active');
+            }
+            
+            function handleChartClick(evt, elements) {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const toolKey = ['language', 'editor', 'translator'][index];
+                    const infoText = content[currentLang].toolDescriptions[toolKey];
+                    document.getElementById('tool-info-text').innerText = infoText;
+                }
+            }
+
+            function renderToolsChart() {
+                const ctx = document.getElementById('toolsChart').getContext('2d');
+                const labels = content[currentLang].chartLabels;
+                
+                toolsChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Strumenti',
+                            data: [1, 1, 1],
+                            backgroundColor: [
+                                '#0e7490',
+                                '#0891b2',
+                                '#06b6d4'
+                            ],
+                            borderColor: '#f8fafc',
+                            borderWidth: 3,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: {
+                                        size: 14,
+                                        family: 'Inter, sans-serif'
+                                    },
+                                    color: '#374151'
+                                }
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        },
+                        onClick: handleChartClick
+                    }
+                });
+            }
+            
+            btnIt.addEventListener('click', () => updateLanguage('it'));
+            btnEn.addEventListener('click', () => updateLanguage('en'));
+
+            tabBtnConcepts.addEventListener('click', () => switchTab('concepts'));
+            tabBtnTools.addEventListener('click', () => switchTab('tools'));
+            tabBtnRules.addEventListener('click', () => switchTab('rules'));
+            
+            document.querySelectorAll('.rule-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.getAttribute('data-target');
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.classList.toggle('hidden');
+                    }
+                });
+            });
+
+            updateLanguage('it');
+            switchTab('concepts');
+        });
+    </script>
+</body>
+</html>
